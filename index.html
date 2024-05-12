@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScanToChat.in - WhatsApp QR Code & Link Generator</title>
+    <meta name="description" content="Generate WhatsApp QR Code and Link with ScanToChat.in. Your one-stop WhatsApp QR Code & Link Generator.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex flex-col items-center justify-center">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold mb-2">Scan To Chat</h1>
+            <p class="text-lg font-semibold text-gray-700">Your one-stop WhatsApp QR Code & Link Generator</p>
+        </div>
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Generate Your Link</h2>
+            <div class="mb-4">
+                <label for="phone" class="block text-gray-700 text-sm font-bold mb-2">Enter Phone Number</label>
+                <input type="tel" id="phone" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="(without +91) 7032102834" pattern="[0-9]{1,12}">
+            </div>
+            <div class="mb-6">
+                <label for="message" class="block text-gray-700 text-sm font-bold mb-2">Message</label>
+                <textarea id="message" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your message here"></textarea>
+            </div>
+            <button id="generate" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full mb-4">Generate Link</button>
+            <div id="result" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <a id="whatsapp-link" href="#" class="text-blue-500 hover:text-blue-700" target="_blank">Open WhatsApp Link</a>
+                    <button id="copy-link" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-2 rounded">Copy Link</button>
+                </div>
+                <div id="qr-code" style="display: flex;padding: 20px;background-color: white;justify-content: center;"></div>
+                <div class="flex justify-center gap-4 mt-4">
+                    <button id="download-svg" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Download SVG</button>
+                    <button id="download-png" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">Download PNG</button>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 40px;">Created by <a style="text-decoration: underline;" href="https://www.instagram.com/pixelperfectpravin/" target="_blank" >Pravin Singh</a> - Open Source on <a style="text-decoration: underline;" href="https://github.com/Pravinakajerry/Scan-to-Chat" target="_blank">Github</a></p>
+        <!-- <div class="max-w-md w-full text-center mt-8">
+            <p class="text-lg font-semibold">Unlock the full potential of your communication strategy with ScanToChat.in. It's fast, free, and designed with your convenience in mind. Streamline your WhatsApp interactions today!</p>
+        </div> -->
+    </div>
+
+
+    <script>
+        document.getElementById('generate').addEventListener('click', function() {
+            let phone = document.getElementById('phone').value.trim();
+            if (!phone.startsWith('+91')) {
+                phone = '+91' + phone;
+            }
+            const message = encodeURIComponent(document.getElementById('message').value.trim());
+            const whatsappLink = `https://wa.me/${phone.replace('+', '')}?text=${message}`;
+            document.getElementById('whatsapp-link').href = whatsappLink;
+            document.getElementById('whatsapp-link').innerHTML = 'Open <u>WhatsApp Link</u>';
+            document.getElementById('result').classList.remove('hidden');
+
+            // Generate QR Code using qrcode-generator
+            let qr = qrcode(0, 'L');
+            qr.addData(whatsappLink);
+            qr.make();
+
+            document.getElementById('qr-code').innerHTML = qr.createImgTag(4, 12); // For PNG with 12px padding
+            let svgTag = qr.createSvgTag({cellSize: 4, margin: 8, padding: 12}); // For SVG with 12px padding
+
+            // Copy to Clipboard
+            document.getElementById('copy-link').addEventListener('click', function() {
+                const whatsappLinkMobile = document.getElementById('whatsapp-link').href;
+                navigator.clipboard.writeText(whatsappLinkMobile).then(() => {
+                    alert('Link copied to clipboard!');
+                });
+            });
+
+            // Handle PNG Download - Adjusted to work with qrcode-generator output
+            document.getElementById('download-png').addEventListener('click', function() {
+                const qrCanvas = document.querySelector('#qr-code img'); // The library generates an image tag
+                const image = qrCanvas.src;
+                const link = document.createElement('a');
+                link.download = phone.replace('+91', '').replace('+', '') + '-qrcode.png';
+                link.href = image;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Handle SVG Download
+            document.getElementById('download-svg').addEventListener('click', function() {
+                const svgData = new Blob([svgTag], {type: "image/svg+xml;charset=utf-8"});
+                const svgUrl = URL.createObjectURL(svgData);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = svgUrl;
+                downloadLink.download = phone.replace('+91', '').replace('+', '') + '-qrcode.svg';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
+        });
+    </script>
+</body>
+</html>
