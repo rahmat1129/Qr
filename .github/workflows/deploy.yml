@@ -1,4 +1,4 @@
-name: Deploy
+name: g
 on:
   push:
     branches: main
